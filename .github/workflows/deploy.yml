@@ -40,7 +40,7 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npx nx build api
       - name: Package build output
-        run: tar -czf /tmp/api.tar.gz -C dist/apps/api .
+        run: tar -czf /tmp/api.tar.gz -C apps/api/dist .
       - name: Load ssh key into agent
         uses: webfactory/ssh-agent@v0.9.0
         with:

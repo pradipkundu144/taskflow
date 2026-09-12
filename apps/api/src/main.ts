@@ -7,9 +7,13 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/healthz', (_req, res) => {
+const api = express.Router();
+
+api.get('/healthz', (_req, res) => {
   res.json({ status: 'ok' });
 });
+
+app.use('/api', api);
 
 app.listen(port, host, () => {
   console.log(`api listening on http://${host}:${port}`);

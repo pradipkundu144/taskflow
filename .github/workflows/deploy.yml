@@ -1,0 +1,65 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npx nx build web
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: aws s3 sync dist/apps/web/browser s3://${{ vars.S3_BUCKET }} --delete
+      - run: aws cloudfront create-invalidation --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+  deploy-api:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npx nx build api
+      - name: Package build output
+        run: tar -czf /tmp/api.tar.gz -C dist/apps/api .
+      - name: Load ssh key into agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Trust EC2 host key
+        run: ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Ship artifact to EC2
+        run: scp /tmp/api.tar.gz ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }}:/tmp/api.tar.gz
+      - name: Extract, install, restart
+        run: |
+          ssh ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} '
+            set -e
+            rm -rf /var/www/api/current
+            mkdir -p /var/www/api/current
+            tar -xzf /tmp/api.tar.gz -C /var/www/api/current
+            cd /var/www/api/current
+            npm ci --omit=dev --legacy-peer-deps
+            pm2 delete taskflow-api 2>/dev/null || true
+            PORT=3333 pm2 start main.js --name taskflow-api
+            pm2 save
+            rm /tmp/api.tar.gz
+          '

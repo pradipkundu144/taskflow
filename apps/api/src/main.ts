@@ -1,13 +1,16 @@
 import 'dotenv/config';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadEnv } from './config/env';
+import { connectMongo, disconnectMongo, mongoStatus } from './infra/mongo';
+import { connectRedis, disconnectRedis, redisStatus } from './infra/redis';
 import { logger } from './lib/logger';
-import { connectMongo, disconnectMongo, mongoStatus } from './lib/mongo';
-import { connectRedis, disconnectRedis, redisStatus } from './lib/redis';
 import { asyncHandler, errorHandler } from './middleware/error';
 import { requestLog } from './middleware/request-log';
+import { seedAdmin } from './modules/admin/seed';
+import { authRouter } from './modules/auth/auth.route';
 
 const env = loadEnv();
 
@@ -31,6 +34,7 @@ async function main(): Promise<void> {
 
   app.use(requestLog);
   app.use(express.json());
+  app.use(cookieParser());
 
   const api = express.Router();
 
@@ -56,12 +60,15 @@ async function main(): Promise<void> {
     res.json({ version });
   });
 
+  api.use('/auth', authRouter);
+
   app.use('/api', api);
 
   app.use(errorHandler);
 
   await connectMongo();
   await connectRedis();
+  await seedAdmin();
 
   const server = app.listen(env.PORT, env.HOST, () => {
     logger.info({ host: env.HOST, port: env.PORT }, 'api listening');

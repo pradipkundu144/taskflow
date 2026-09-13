@@ -15,6 +15,9 @@ const envSchema = z.object({
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),
   CORS_ORIGIN: z.string().default('*'),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_USERNAME: z.string().min(3).default('admin'),
+  ADMIN_PASSWORD: z.string().min(12),
 });
 
 export type Env = z.infer<typeof envSchema>;

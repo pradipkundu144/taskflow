@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { loadEnv } from '../config/env';
-import { logger } from './logger';
+import { logger } from '../lib/logger';
 
 const env = loadEnv();
 

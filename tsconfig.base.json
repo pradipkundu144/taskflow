@@ -18,7 +18,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": {}
+    "paths": {
+      "@taskflow/shared": ["./packages/shared/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 import { loadEnv } from '../config/env';
-import { logger } from './logger';
+import { logger } from '../lib/logger';
 
 const env = loadEnv();
 

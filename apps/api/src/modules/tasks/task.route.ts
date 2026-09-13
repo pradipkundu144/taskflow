@@ -1,5 +1,7 @@
+import { OPERATIONAL_ROLES } from '@taskflow/shared';
 import { Router } from 'express';
 import { authenticate } from '../../middleware/authenticate';
+import { authorize } from '../../middleware/authorize';
 import {
   createController,
   deleteController,
@@ -10,7 +12,7 @@ import {
 
 export const tasksRouter = Router();
 
-tasksRouter.use(authenticate);
+tasksRouter.use(authenticate, authorize(...OPERATIONAL_ROLES));
 tasksRouter.get('/', listController);
 tasksRouter.post('/', createController);
 tasksRouter.get('/:id', getController);

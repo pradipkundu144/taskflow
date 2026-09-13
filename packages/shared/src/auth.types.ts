@@ -1,5 +1,8 @@
-export type Role = 'admin' | 'manager' | 'teamLead' | 'employee';
-export type OperationalRole = 'manager' | 'teamLead' | 'employee';
+export const ROLES = ['admin', 'manager', 'teamLead', 'employee'] as const;
+export const OPERATIONAL_ROLES = ['manager', 'teamLead', 'employee'] as const;
+
+export type Role = (typeof ROLES)[number];
+export type OperationalRole = (typeof OPERATIONAL_ROLES)[number];
 
 export interface AuthUser {
   id: string;

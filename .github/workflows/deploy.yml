@@ -59,7 +59,7 @@ jobs:
             cd /var/www/api/current
             npm ci --omit=dev --legacy-peer-deps
             pm2 delete taskflow-api 2>/dev/null || true
-            PORT=3333 pm2 start main.js --name taskflow-api
+            pm2 start main.js --name taskflow-api --node-args="--env-file=/home/deploy/.env"
             pm2 save
             rm /tmp/api.tar.gz
           '

@@ -13,42 +13,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npx nx run-many -t lint
+      - run: npx nx affected -t lint --base=origin/main
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npx tsc -p apps/api/tsconfig.app.json --noEmit
+      - name: typecheck affected api
+        run: |
+          set -e
+          BASE=origin/main
+          if git diff --name-only $BASE...HEAD -- apps/api | grep -q .; then
+            npx tsc -p apps/api/tsconfig.app.json --noEmit
+          else
+            echo "no api changes, skipping typecheck"
+          fi
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npx nx run-many -t test --parallel=2
+      - run: npx nx affected -t test --parallel=2 --base=origin/main
 
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npx nx run-many -t build --parallel=2
+      - run: npx nx affected -t build --parallel=2 --base=origin/main

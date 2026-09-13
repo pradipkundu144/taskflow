@@ -12,13 +12,18 @@ import { requestLog } from './middleware/request-log';
 const env = loadEnv();
 
 let version = 'dev';
-try {
-  const pkg = JSON.parse(
-    readFileSync(join(__dirname, 'package.json'), 'utf-8'),
-  ) as { version?: string };
-  version = pkg.version ?? 'dev';
-} catch {
-  version = 'dev';
+for (const dir of [process.cwd(), __dirname]) {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(join(dir, 'package.json'), 'utf-8'),
+    ) as { version?: string };
+    if (pkg.version) {
+      version = pkg.version;
+      break;
+    }
+  } catch {
+    continue;
+  }
 }
 
 async function main(): Promise<void> {

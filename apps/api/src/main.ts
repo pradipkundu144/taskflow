@@ -9,8 +9,10 @@ import { connectRedis, disconnectRedis, redisStatus } from './infra/redis';
 import { logger } from './lib/logger';
 import { asyncHandler, errorHandler } from './middleware/error';
 import { requestLog } from './middleware/request-log';
+import { adminRouter } from './modules/admin/admin.route';
 import { seedAdmin } from './modules/admin/seed';
 import { authRouter } from './modules/auth/auth.route';
+import { tasksRouter } from './modules/tasks/task.route';
 
 const env = loadEnv();
 
@@ -61,6 +63,8 @@ async function main(): Promise<void> {
   });
 
   api.use('/auth', authRouter);
+  api.use('/tasks', tasksRouter);
+  api.use('/admin', adminRouter);
 
   app.use('/api', api);
 

@@ -1,0 +1,141 @@
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-cyan-400 focus:px-3 focus:py-1.5 focus:text-sm focus:font-semibold focus:text-slate-900"
+>
+  Skip to main content
+</a>
+
+<div class="relative min-h-screen">
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+      <div class="flex items-center gap-6">
+        <a
+          [routerLink]="home()"
+          class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          (click)="closeMenu()"
+        >
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-cyan-400 to-violet-500 text-slate-950">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 6a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 6a1 1 0 011-1h8a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+            </svg>
+          </span>
+          <span>TaskFlow</span>
+        </a>
+        <nav class="hidden items-center gap-1 text-sm sm:flex" aria-label="Primary">
+          @if (showTasks()) {
+            <a
+              routerLink="/tasks"
+              routerLinkActive="bg-white/[0.06] text-slate-50"
+              class="rounded-md px-3 py-1.5 text-slate-300 hover:bg-white/[0.04] hover:text-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+            >
+              Tasks
+            </a>
+          }
+          @if (showUsers()) {
+            <a
+              routerLink="/team"
+              routerLinkActive="bg-white/[0.06] text-slate-50"
+              class="rounded-md px-3 py-1.5 text-slate-300 hover:bg-white/[0.04] hover:text-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+            >
+              Team
+            </a>
+          }
+        </nav>
+      </div>
+
+      <div class="hidden items-center gap-3 text-sm sm:flex">
+        @if (user(); as u) {
+          @if (u.role !== 'admin') {
+            <div class="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">
+              <span class="text-slate-100">{{ u.username }}</span>
+              <span class="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-200 ring-1 ring-inset ring-cyan-400/30">
+                {{ u.role }}
+              </span>
+            </div>
+          } @else {
+            <span class="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-200 ring-1 ring-inset ring-cyan-400/30">
+              {{ u.role }}
+            </span>
+          }
+          <button
+            type="button"
+            class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-slate-200 transition hover:bg-white/[0.06] hover:text-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+            (click)="logout()"
+            [disabled]="loggingOut()"
+          >
+            @if (loggingOut()) { Signing out } @else { Sign out }
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.03] p-2 text-slate-200 hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 sm:hidden"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-label="Toggle menu"
+      >
+        @if (menuOpen()) {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4.28 3.22a.75.75 0 011.06 0L10 7.88l4.66-4.66a.75.75 0 111.06 1.06L11.06 8.94l4.66 4.66a.75.75 0 11-1.06 1.06L10 10l-4.66 4.66a.75.75 0 01-1.06-1.06L8.94 8.94 4.28 4.28a.75.75 0 010-1.06z"/>
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M3 5.75A.75.75 0 013.75 5h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 5.75zm0 4.25A.75.75 0 013.75 9.25h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10zm.75 3.5a.75.75 0 000 1.5h12.5a.75.75 0 000-1.5H3.75z" clip-rule="evenodd"/>
+          </svg>
+        }
+      </button>
+    </div>
+
+    @if (menuOpen()) {
+      <div class="border-t border-white/10 bg-slate-950/90 px-4 pb-4 pt-2 backdrop-blur-xl sm:hidden">
+        @if (user(); as u) {
+          <div class="flex items-center gap-2 px-2 py-2 text-sm">
+            @if (u.role !== 'admin') {
+              <span class="text-slate-100">{{ u.username }}</span>
+            }
+            <span class="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-200 ring-1 ring-inset ring-cyan-400/30">
+              {{ u.role }}
+            </span>
+          </div>
+        }
+        <!-- mobile drawer already renders without outer pill wrapper -->
+
+        <nav class="mt-2 space-y-1" aria-label="Mobile">
+          @if (showTasks()) {
+            <a
+              routerLink="/tasks"
+              routerLinkActive="bg-white/[0.06] text-slate-50"
+              class="block rounded-md px-3 py-2 text-sm text-slate-200 hover:bg-white/[0.04]"
+              (click)="closeMenu()"
+            >
+              Tasks
+            </a>
+          }
+          @if (showUsers()) {
+            <a
+              routerLink="/team"
+              routerLinkActive="bg-white/[0.06] text-slate-50"
+              class="block rounded-md px-3 py-2 text-sm text-slate-200 hover:bg-white/[0.04]"
+              (click)="closeMenu()"
+            >
+              Team
+            </a>
+          }
+          <button
+            type="button"
+            class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/[0.04] disabled:opacity-60"
+            (click)="logout()"
+            [disabled]="loggingOut()"
+          >
+            @if (loggingOut()) { Signing out } @else { Sign out }
+          </button>
+        </nav>
+      </div>
+    }
+  </header>
+
+  <main id="main-content" tabindex="-1" class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <router-outlet></router-outlet>
+  </main>
+</div>

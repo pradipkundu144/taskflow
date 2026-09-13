@@ -32,4 +32,5 @@ export interface LoginResponse {
 
 export interface RefreshResponse {
   accessToken: string;
+  user: AuthUser;
 }

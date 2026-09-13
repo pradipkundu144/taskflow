@@ -133,7 +133,7 @@ export async function refresh(rawToken: string): Promise<RefreshResult> {
     family: payload.family,
   });
   await storeRefresh(user._id.toString(), nextJti, payload.family, refreshToken);
-  return { accessToken, refreshToken };
+  return { accessToken, refreshToken, user: toAuthUser(user) };
 }
 
 export async function logout(rawToken: string | undefined): Promise<void> {

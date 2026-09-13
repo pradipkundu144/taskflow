@@ -14,6 +14,7 @@
     "@angular/platform-server": "22.1.4",
     "@angular/router": "22.1.4",
     "@angular/ssr": "22.1.6",
+    "@ngrx/signals": "^22.0.1",
     "@socket.io/redis-adapter": "^8.3.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

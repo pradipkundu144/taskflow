@@ -15,6 +15,7 @@ import { seedAdmin } from './modules/admin/seed';
 import { authRouter } from './modules/auth/auth.route';
 import { attachSocketIo, shutdownSocketIo } from './modules/realtime/socket';
 import { tasksRouter } from './modules/tasks/task.route';
+import { usersRouter } from './modules/users/user.route';
 
 const env = loadEnv();
 
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
   api.use('/auth', authRouter);
   api.use('/tasks', tasksRouter);
   api.use('/admin', adminRouter);
+  api.use('/users', usersRouter);
 
   app.use('/api', api);
 

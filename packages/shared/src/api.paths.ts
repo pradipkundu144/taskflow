@@ -20,4 +20,7 @@ export const API_PATHS = {
     setManager: (userId: string) => `/api/admin/users/${userId}/manager`,
     setTeamLead: (userId: string) => `/api/admin/users/${userId}/team-lead`,
   },
+  users: {
+    assignable: '/api/users/assignable',
+  },
 } as const;

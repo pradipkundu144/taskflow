@@ -60,9 +60,9 @@ export const loginController = asyncHandler(async (req, res) => {
 export const refreshController = asyncHandler(async (req, res) => {
   const token = readRefreshCookie(req);
   if (!token) throw new UnauthorizedError('missing refresh cookie');
-  const { refreshToken, accessToken } = await authService.refresh(token);
+  const { refreshToken, accessToken, user } = await authService.refresh(token);
   setRefreshCookie(res, refreshToken);
-  res.json({ accessToken });
+  res.json({ accessToken, user });
 });
 
 export const logoutController = asyncHandler(async (req, res) => {

@@ -1,0 +1,126 @@
+<div class="space-y-4">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-50">Managers</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        {{ totalManagers() }} {{ totalManagers() === 1 ? 'manager' : 'managers' }} total. Read only.
+      </p>
+    </div>
+    <div class="flex items-center gap-2 text-xs">
+      <span class="uppercase tracking-wide text-slate-400">Sort by</span>
+      <div class="inline-flex rounded-md border border-white/10 bg-slate-950/40 p-1">
+        <button
+          type="button"
+          class="rounded px-2 py-1 text-xs font-medium transition"
+          [class]="sort() === 'team' ? 'bg-cyan-400/15 text-cyan-100 ring-1 ring-inset ring-cyan-400/30' : 'text-slate-400 hover:text-slate-200'"
+          (click)="setSort('team')"
+        >Team size</button>
+        <button
+          type="button"
+          class="ml-1 rounded px-2 py-1 text-xs font-medium transition"
+          [class]="sort() === 'name' ? 'bg-cyan-400/15 text-cyan-100 ring-1 ring-inset ring-cyan-400/30' : 'text-slate-400 hover:text-slate-200'"
+          (click)="setSort('name')"
+        >Name</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative">
+    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.45 4.39l3.08 3.08a1 1 0 01-1.42 1.42l-3.08-3.08A7 7 0 012 9z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+    <input
+      type="search"
+      placeholder="Search managers or their team leads"
+      [value]="search()"
+      (input)="onSearchInput($event)"
+      class="block w-full rounded-md border border-white/10 bg-slate-950/40 py-2 pl-9 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+      aria-label="Search managers"
+    />
+    @if (search()) {
+      <button
+        type="button"
+        class="absolute inset-y-0 right-2 flex items-center rounded p-1 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+        (click)="clearSearch()"
+        aria-label="Clear search"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M4.28 3.22a.75.75 0 011.06 0L10 7.88l4.66-4.66a.75.75 0 111.06 1.06L11.06 8.94l4.66 4.66a.75.75 0 11-1.06 1.06L10 10l-4.66 4.66a.75.75 0 01-1.06-1.06L8.94 8.94 4.28 4.28a.75.75 0 010-1.06z"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  @if (loading() && !loaded()) {
+    <div class="flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] py-16 text-cyan-300">
+      <app-spinner size="lg" />
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="rounded-xl border border-dashed border-white/15 bg-white/[0.02] py-16 text-center text-sm text-slate-400">
+      @if (search()) { No managers match "{{ search() }}". } @else { No managers yet. }
+    </div>
+  } @else {
+    <ul class="space-y-2">
+      @for (row of rows(); track row.manager.id) {
+        <li class="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl px-5 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+            (click)="toggle(row.manager.id)"
+            [attr.aria-expanded]="isExpanded(row.manager.id)"
+          >
+            <span
+              class="inline-flex h-5 w-5 items-center justify-center text-slate-400 transition"
+              [class.rotate-90]="isExpanded(row.manager.id)"
+              aria-hidden="true"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.05 4.55a.75.75 0 011.06 0l4.5 4.5a.75.75 0 010 1.06l-4.5 4.5a.75.75 0 11-1.06-1.06L10.94 10 7.05 6.11a.75.75 0 010-1.06z" clip-rule="evenodd"/>
+              </svg>
+            </span>
+            <span class="rounded-full bg-cyan-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200 ring-1 ring-inset ring-cyan-400/25">Manager</span>
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-medium text-slate-100">{{ row.manager.username }}</div>
+              <div class="truncate text-xs text-slate-400">{{ row.manager.email }}</div>
+            </div>
+            <div class="shrink-0 text-xs text-slate-400">
+              {{ row.teamLeads.length }} {{ row.teamLeads.length === 1 ? 'team lead' : 'team leads' }}
+              @if (row.employeeCount > 0) {
+                <span class="opacity-70"> · {{ row.employeeCount }} {{ row.employeeCount === 1 ? 'employee' : 'employees' }}</span>
+              }
+            </div>
+          </button>
+          @if (isExpanded(row.manager.id)) {
+            <div class="border-t border-white/[0.06] px-5 py-3">
+              @if (row.teamLeads.length === 0) {
+                <p class="text-xs text-slate-500">No team leads reporting yet.</p>
+              } @else {
+                <ul class="space-y-2">
+                  @for (t of row.teamLeads; track t.teamLead.id) {
+                    <li class="flex items-center justify-between rounded-lg border border-white/[0.06] bg-slate-950/30 px-3 py-2">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="rounded-full bg-violet-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200 ring-1 ring-inset ring-violet-400/25">Team lead</span>
+                        <div class="min-w-0">
+                          <div class="truncate text-sm text-slate-100">{{ t.teamLead.username }}</div>
+                          <div class="truncate text-xs text-slate-400">{{ t.teamLead.email }}</div>
+                        </div>
+                      </div>
+                      <span class="shrink-0 text-xs text-slate-500">
+                        {{ t.employees.length }} {{ t.employees.length === 1 ? 'employee' : 'employees' }}
+                      </span>
+                    </li>
+                  }
+                </ul>
+              }
+              <p class="mt-3 text-[11px] text-slate-500">
+                To reassign a team lead, switch to the Team leads tab.
+              </p>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -2,6 +2,11 @@ import { Types } from 'mongoose';
 import type { Task } from '@taskflow/shared';
 import { ForbiddenError, NotFoundError } from '../../lib/errors';
 import type { AccessPayload } from '../auth/jwt';
+import {
+  emitTaskCreated,
+  emitTaskDeleted,
+  emitTaskUpdated,
+} from '../realtime/events';
 import * as userRepo from '../users/user.repository';
 import type { TaskDoc } from './task.model';
 import * as taskRepo from './task.repository';
@@ -92,7 +97,9 @@ export async function createTask(
     createdBy: new Types.ObjectId(actor.sub),
     assignedTo: new Types.ObjectId(assignedTo),
   });
-  return toTask(doc);
+  const task = toTask(doc);
+  await emitTaskCreated(task);
+  return task;
 }
 
 export async function listTasks(
@@ -162,7 +169,9 @@ export async function updateTask(
   }
   const updated = await taskRepo.update(id, cleaned);
   if (!updated) throw new NotFoundError('task not found');
-  return toTask(updated);
+  const t = toTask(updated);
+  await emitTaskUpdated(t);
+  return t;
 }
 
 export async function deleteTask(
@@ -179,4 +188,9 @@ export async function deleteTask(
   }
   const removed = await taskRepo.remove(id);
   if (!removed) throw new NotFoundError('task not found');
+  await emitTaskDeleted(
+    id,
+    task.assignedTo.toString(),
+    task.createdBy.toString(),
+  );
 }

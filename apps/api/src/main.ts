@@ -2,6 +2,7 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { loadEnv } from './config/env';
 import { connectMongo, disconnectMongo, mongoStatus } from './infra/mongo';
@@ -12,6 +13,7 @@ import { requestLog } from './middleware/request-log';
 import { adminRouter } from './modules/admin/admin.route';
 import { seedAdmin } from './modules/admin/seed';
 import { authRouter } from './modules/auth/auth.route';
+import { attachSocketIo, shutdownSocketIo } from './modules/realtime/socket';
 import { tasksRouter } from './modules/tasks/task.route';
 
 const env = loadEnv();
@@ -74,12 +76,15 @@ async function main(): Promise<void> {
   await connectRedis();
   await seedAdmin();
 
-  const server = app.listen(env.PORT, env.HOST, () => {
+  const server = createServer(app);
+  await attachSocketIo(server);
+  server.listen(env.PORT, env.HOST, () => {
     logger.info({ host: env.HOST, port: env.PORT }, 'api listening');
   });
 
   const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'shutting down');
+    await shutdownSocketIo();
     server.close();
     await disconnectMongo();
     await disconnectRedis();

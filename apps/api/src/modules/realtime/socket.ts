@@ -1,5 +1,6 @@
 import type { Server as HttpServer } from 'node:http';
 import { createAdapter } from '@socket.io/redis-adapter';
+import { SOCKET_PATH } from '@taskflow/shared';
 import { Server as SocketIOServer } from 'socket.io';
 import { loadEnv } from '../../config/env';
 import { redis } from '../../infra/redis';
@@ -24,7 +25,7 @@ export async function attachSocketIo(server: HttpServer): Promise<void> {
       origin: env.CORS_ORIGIN,
       credentials: true,
     },
-    path: '/api/socket.io/',
+    path: SOCKET_PATH,
   });
   io.adapter(createAdapter(pub, sub));
 

@@ -1,5 +1,8 @@
-export type TaskStatus = 'pending' | 'completed';
-export type TaskPriority = 'low' | 'medium' | 'high';
+export const TASK_STATUSES = ['pending', 'completed'] as const;
+export const TASK_PRIORITIES = ['low', 'medium', 'high'] as const;
+
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
 export interface Task {
   id: string;

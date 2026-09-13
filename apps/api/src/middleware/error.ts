@@ -1,3 +1,4 @@
+import { ERROR_CODES } from '@taskflow/shared';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { ZodError } from 'zod';
 import { HttpError } from '../lib/errors';
@@ -23,7 +24,7 @@ export function errorHandler(
   if (err instanceof ZodError) {
     req.log?.warn({ err }, 'validation error');
     res.status(400).json({
-      code: 'validation_error',
+      code: ERROR_CODES.VALIDATION,
       message: 'validation failed',
       issues: err.issues.map((i) => ({
         path: i.path.join('.'),
@@ -48,5 +49,5 @@ export function errorHandler(
   }
 
   req.log?.error({ err }, 'unhandled error');
-  res.status(500).json({ code: 'internal_error', message: 'internal error' });
+  res.status(500).json({ code: ERROR_CODES.INTERNAL, message: 'internal error' });
 }

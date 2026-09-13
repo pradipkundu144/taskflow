@@ -1,4 +1,10 @@
-import type { Task } from '@taskflow/shared';
+import {
+  TASK_EVENTS,
+  type Task,
+  type TaskCreatedEvent,
+  type TaskDeletedEvent,
+  type TaskUpdatedEvent,
+} from '@taskflow/shared';
 import * as userRepo from '../users/user.repository';
 import { getIo } from './socket';
 
@@ -28,13 +34,15 @@ function emitToUsers(event: string, payload: unknown, userIds: Set<string>) {
 export async function emitTaskCreated(task: Task): Promise<void> {
   const users = await recipientsFor(task.assignedTo);
   users.add(task.createdBy);
-  emitToUsers('task.created', { task }, users);
+  const payload: TaskCreatedEvent = { task };
+  emitToUsers(TASK_EVENTS.CREATED, payload, users);
 }
 
 export async function emitTaskUpdated(task: Task): Promise<void> {
   const users = await recipientsFor(task.assignedTo);
   users.add(task.createdBy);
-  emitToUsers('task.updated', { task }, users);
+  const payload: TaskUpdatedEvent = { task };
+  emitToUsers(TASK_EVENTS.UPDATED, payload, users);
 }
 
 export async function emitTaskDeleted(
@@ -44,5 +52,6 @@ export async function emitTaskDeleted(
 ): Promise<void> {
   const users = await recipientsFor(assignedTo);
   users.add(createdBy);
-  emitToUsers('task.deleted', { taskId }, users);
+  const payload: TaskDeletedEvent = { taskId };
+  emitToUsers(TASK_EVENTS.DELETED, payload, users);
 }

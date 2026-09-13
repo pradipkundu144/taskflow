@@ -1,5 +1,12 @@
 import { Schema, Types, model } from 'mongoose';
-import type { TaskPriority, TaskStatus } from '@taskflow/shared';
+import {
+  TASK_DESCRIPTION_MAX_LENGTH,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  TASK_TITLE_MAX_LENGTH,
+  type TaskPriority,
+  type TaskStatus,
+} from '@taskflow/shared';
 
 export interface TaskDoc {
   _id: Types.ObjectId;
@@ -16,16 +23,25 @@ export interface TaskDoc {
 
 const taskSchema = new Schema<TaskDoc>(
   {
-    title: { type: String, required: true, trim: true, maxlength: 200 },
-    description: { type: String, default: '', maxlength: 2000 },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: TASK_TITLE_MAX_LENGTH,
+    },
+    description: {
+      type: String,
+      default: '',
+      maxlength: TASK_DESCRIPTION_MAX_LENGTH,
+    },
     status: {
       type: String,
-      enum: ['pending', 'completed'],
+      enum: [...TASK_STATUSES],
       default: 'pending',
     },
     priority: {
       type: String,
-      enum: ['low', 'medium', 'high'],
+      enum: [...TASK_PRIORITIES],
       default: 'medium',
     },
     dueDate: { type: Date },

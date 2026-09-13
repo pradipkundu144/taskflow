@@ -1,5 +1,10 @@
 import { Schema, Types, model } from 'mongoose';
-import type { Role } from '@taskflow/shared';
+import {
+  ROLES,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  type Role,
+} from '@taskflow/shared';
 
 export interface UserDoc {
   _id: Types.ObjectId;
@@ -15,7 +20,14 @@ export interface UserDoc {
 
 const userSchema = new Schema<UserDoc>(
   {
-    username: { type: String, required: true, unique: true, trim: true },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: USERNAME_MIN_LENGTH,
+      maxlength: USERNAME_MAX_LENGTH,
+    },
     email: {
       type: String,
       required: true,
@@ -26,7 +38,7 @@ const userSchema = new Schema<UserDoc>(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ['admin', 'manager', 'teamLead', 'employee'],
+      enum: [...ROLES],
       required: true,
     },
     manager: { type: Schema.Types.ObjectId, ref: 'User' },

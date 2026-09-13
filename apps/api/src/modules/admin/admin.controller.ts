@@ -1,4 +1,8 @@
-import type { AuthUser, Role } from '@taskflow/shared';
+import {
+  OPERATIONAL_ROLES,
+  type AuthUser,
+  type Role,
+} from '@taskflow/shared';
 import { BadRequestError, NotFoundError } from '../../lib/errors';
 import { asyncHandler } from '../../middleware/error';
 import type { UserDoc } from '../users/user.model';
@@ -18,7 +22,7 @@ function toAuthUser(u: UserDoc): AuthUser {
 
 export const listByRoleController = asyncHandler(async (req, res) => {
   const role = req.params.role as Role;
-  if (!['manager', 'teamLead', 'employee'].includes(role)) {
+  if (!(OPERATIONAL_ROLES as readonly string[]).includes(role)) {
     throw new BadRequestError('invalid role');
   }
   const users = await userRepo.findAllByRole(role);

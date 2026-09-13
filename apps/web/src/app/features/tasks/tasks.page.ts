@@ -66,9 +66,10 @@ export class TasksPage implements OnInit {
     this.editing.set(null);
   }
 
-  onSaved(t: Task): void {
+  onSaved(): void {
+    const editing = this.editing();
     this.closeForm();
-    this.toast.success(this.editing() ? 'task updated' : `task created`);
+    this.toast.success(editing ? 'task updated' : 'task created');
   }
 
   askDelete(t: Task): void {

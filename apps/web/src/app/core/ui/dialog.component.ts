@@ -18,7 +18,9 @@ import {
     <div
       class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/70 px-4 py-8 backdrop-blur-sm"
       role="presentation"
+      tabindex="-1"
       (click)="onBackdrop($event)"
+      (keyup)="onBackdropKey($event)"
     >
       <div
         #panel
@@ -27,7 +29,6 @@ import {
         [attr.aria-labelledby]="labelledBy()"
         class="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/85 shadow-2xl shadow-black/50 backdrop-blur-xl"
         tabindex="-1"
-        (click)="$event.stopPropagation()"
       >
         <ng-content />
       </div>
@@ -37,7 +38,7 @@ import {
 export class Dialog implements AfterViewInit, OnDestroy {
   readonly labelledBy = input<string | null>(null);
   readonly dismissOnBackdrop = input(true);
-  readonly close = output<void>();
+  readonly closed = output<void>();
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
@@ -59,13 +60,17 @@ export class Dialog implements AfterViewInit, OnDestroy {
   onBackdrop(event: MouseEvent): void {
     if (!this.dismissOnBackdrop()) return;
     if (event.target === event.currentTarget) {
-      this.close.emit();
+      this.closed.emit();
     }
+  }
+
+  onBackdropKey(event: KeyboardEvent): void {
+    if (event.key === 'Escape') this.closed.emit();
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.close.emit();
+    this.closed.emit();
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -78,8 +83,9 @@ export class Dialog implements AfterViewInit, OnDestroy {
       ),
     );
     if (focusables.length === 0) return;
-    const first = focusables[0]!;
-    const last = focusables[focusables.length - 1]!;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!first || !last) return;
     const active = document.activeElement as HTMLElement | null;
     if (event.shiftKey) {
       if (active === first || !panel.contains(active)) {

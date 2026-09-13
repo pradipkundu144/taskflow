@@ -1,4 +1,4 @@
-<app-dialog labelledBy="task-form-title" (close)="cancel()">
+<app-dialog labelledBy="task-form-title" (closed)="cancel()">
   <header class="flex items-center justify-between border-b border-white/10 px-6 py-4">
     <h2 id="task-form-title" class="text-lg font-semibold text-slate-50">
       {{ editing() ? 'Edit task' : 'New task' }}

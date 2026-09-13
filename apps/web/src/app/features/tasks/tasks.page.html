@@ -172,15 +172,15 @@
   }
 
   @if (showForm()) {
-    <app-task-form [editing]="editing()" (close)="closeForm()" (saved)="onSaved($event)" />
+    <app-task-form [editing]="editing()" (closed)="closeForm()" (saved)="onSaved()" />
   }
   @if (confirmingDelete(); as t) {
     <app-confirm-dialog
       title="Delete task?"
       [message]="deleteMessage()"
       [busy]="deleting()"
-      (confirm)="confirmDelete()"
-      (cancel)="cancelDelete()"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
     />
   }
 </div>

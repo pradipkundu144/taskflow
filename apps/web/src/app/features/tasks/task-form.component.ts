@@ -30,7 +30,7 @@ import { TasksStore } from './tasks.store';
 })
 export class TaskForm {
   readonly editing = input<Task | null>(null);
-  readonly close = output<void>();
+  readonly closed = output<void>();
   readonly saved = output<Task>();
 
   private readonly fb = inject(FormBuilder);
@@ -131,6 +131,6 @@ export class TaskForm {
 
   cancel(): void {
     if (this.submitting()) return;
-    this.close.emit();
+    this.closed.emit();
   }
 }

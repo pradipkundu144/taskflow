@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import type { AuthUser } from '@taskflow/shared';
 import { Spinner } from '../../core/ui/spinner.component';
 import { ToastService } from '../../core/ui/toast.service';
 import { toErrorMessage } from '../../core/http/error-message';

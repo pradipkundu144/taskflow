@@ -1,0 +1,127 @@
+<app-dialog labelledBy="task-form-title" (closed)="cancel()">
+  <header class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+    <h2 id="task-form-title" class="text-lg font-semibold text-slate-50">
+      {{ editing() ? 'Edit task' : 'New task' }}
+    </h2>
+    <button
+      type="button"
+      class="rounded-md p-1 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+      (click)="cancel()"
+      [disabled]="submitting()"
+      aria-label="Close dialog"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path d="M4.28 3.22a.75.75 0 011.06 0L10 7.88l4.66-4.66a.75.75 0 111.06 1.06L11.06 8.94l4.66 4.66a.75.75 0 11-1.06 1.06L10 10l-4.66 4.66a.75.75 0 01-1.06-1.06L8.94 8.94 4.28 4.28a.75.75 0 010-1.06z"/>
+      </svg>
+    </button>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 px-6 py-5" novalidate>
+    @if (serverError(); as msg) {
+      <div role="alert" class="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{{ msg }}</div>
+    }
+
+    <div>
+      <label for="tf-title" class="block text-sm font-medium text-slate-200">Title</label>
+      <input
+        id="tf-title"
+        type="text"
+        formControlName="title"
+        [attr.aria-invalid]="(hasClientError('title') || serverIssueFor('title')) ? 'true' : null"
+        [attr.aria-describedby]="(hasClientError('title') || serverIssueFor('title')) ? 'tf-title-err' : null"
+        class="mt-1 block w-full rounded-md border bg-slate-950/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2"
+        [class]="(hasClientError('title') || serverIssueFor('title')) ? 'border-rose-500/50 focus:border-rose-400 focus:ring-rose-400/30' : 'border-white/10 focus:border-cyan-400/60 focus:ring-cyan-400/40'"
+        [maxlength]="titleMax"
+      />
+      @if (hasClientError('title')) {
+        <p id="tf-title-err" class="mt-1 text-xs text-rose-300">
+          @if (form.controls.title.errors?.['required']) { Title is required }
+          @else if (form.controls.title.errors?.['maxlength']) { Too long }
+        </p>
+      } @else if (serverIssueFor('title'); as msg) {
+        <p id="tf-title-err" class="mt-1 text-xs text-rose-300">{{ msg }}</p>
+      }
+    </div>
+
+    <div>
+      <label for="tf-desc" class="block text-sm font-medium text-slate-200">Description</label>
+      <textarea
+        id="tf-desc"
+        rows="4"
+        formControlName="description"
+        [attr.aria-invalid]="serverIssueFor('description') ? 'true' : null"
+        [attr.aria-describedby]="serverIssueFor('description') ? 'tf-desc-err' : null"
+        class="mt-1 block w-full rounded-md border bg-slate-950/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2"
+        [class]="serverIssueFor('description') ? 'border-rose-500/50 focus:border-rose-400 focus:ring-rose-400/30' : 'border-white/10 focus:border-cyan-400/60 focus:ring-cyan-400/40'"
+        [maxlength]="descriptionMax"
+      ></textarea>
+      @if (serverIssueFor('description'); as msg) {
+        <p id="tf-desc-err" class="mt-1 text-xs text-rose-300">{{ msg }}</p>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label for="tf-priority" class="block text-sm font-medium text-slate-200">Priority</label>
+        <select
+          id="tf-priority"
+          formControlName="priority"
+          class="mt-1 block w-full rounded-md border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+        >
+          @for (p of priorities; track p) {
+            <option [value]="p">{{ p }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="tf-due" class="block text-sm font-medium text-slate-200">Due date</label>
+        <input
+          id="tf-due"
+          type="date"
+          formControlName="dueDate"
+          class="mt-1 block w-full rounded-md border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+        />
+      </div>
+    </div>
+
+    @if (canPickAssignee()) {
+      <div>
+        <label for="tf-assignee" class="block text-sm font-medium text-slate-200">Assignee</label>
+        <select
+          id="tf-assignee"
+          formControlName="assignedTo"
+          [attr.aria-invalid]="serverIssueFor('assignedTo') ? 'true' : null"
+          [attr.aria-describedby]="serverIssueFor('assignedTo') ? 'tf-assignee-err' : null"
+          class="mt-1 block w-full rounded-md border bg-slate-950/40 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2"
+          [class]="serverIssueFor('assignedTo') ? 'border-rose-500/50 focus:border-rose-400 focus:ring-rose-400/30' : 'border-white/10 focus:border-cyan-400/60 focus:ring-cyan-400/40'"
+        >
+          <option value="">Unassigned (self)</option>
+          @for (u of assignable(); track u.id) {
+            <option [value]="u.id">{{ u.username }} ({{ u.role }})</option>
+          }
+        </select>
+        @if (serverIssueFor('assignedTo'); as msg) {
+          <p id="tf-assignee-err" class="mt-1 text-xs text-rose-300">{{ msg }}</p>
+        }
+      </div>
+    }
+
+    <div class="flex items-center justify-end gap-2 pt-2">
+      <button
+        type="button"
+        class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="cancel()"
+        [disabled]="submitting()"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        @if (submitting()) { <app-spinner /> Saving } @else { {{ editing() ? 'Save changes' : 'Create task' }} }
+      </button>
+    </div>
+  </form>
+</app-dialog>

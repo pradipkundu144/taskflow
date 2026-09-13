@@ -19,9 +19,9 @@ function makeLimiter(keyPrefix: string, rule: Rule): RateLimiterRedis {
 }
 
 const limiters = {
-  registerByIp: makeLimiter('rl:register:ip', { points: 5, duration: 3600 }),
-  loginByIp: makeLimiter('rl:login:ip', { points: 5, duration: 900 }),
-  loginByEmail: makeLimiter('rl:login:email', { points: 5, duration: 900 }),
+  registerByIp: makeLimiter('rl:register:ip', { points: 20, duration: 3600 }),
+  loginByIp: makeLimiter('rl:login:ip', { points: 30, duration: 900 }),
+  loginByEmail: makeLimiter('rl:login:email', { points: 20, duration: 900 }),
   refreshByJti: makeLimiter('rl:refresh:jti', { points: 30, duration: 3600 }),
 };
 

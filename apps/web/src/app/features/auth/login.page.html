@@ -1,0 +1,83 @@
+<div class="mx-auto flex min-h-screen max-w-md flex-col items-stretch justify-center px-6 py-12">
+  <div class="mb-8 flex flex-col items-center gap-3 text-center">
+    <span class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-slate-950 shadow-lg shadow-cyan-500/20">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 6a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 6a1 1 0 011-1h8a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+      </svg>
+    </span>
+    <span class="text-xl font-semibold tracking-tight text-slate-100">TaskFlow</span>
+  </div>
+
+  <div class="w-full rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+    <h1 class="text-2xl font-semibold text-slate-50">Sign in</h1>
+    <p class="mt-1 text-sm text-slate-400">Welcome back.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
+      @if (serverError(); as msg) {
+        <div role="alert" class="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{{ msg }}</div>
+      }
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-200">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+          [attr.aria-invalid]="hasError('email') ? 'true' : null"
+          [attr.aria-describedby]="hasError('email') ? 'email-err' : null"
+          class="mt-1 block w-full rounded-md border bg-slate-950/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2"
+          [class]="hasError('email') ? 'border-rose-500/50 focus:border-rose-400 focus:ring-rose-400/30' : 'border-white/10 focus:border-cyan-400/60 focus:ring-cyan-400/40'"
+        />
+        @if (hasError('email')) {
+          <p id="email-err" class="mt-1 text-xs text-rose-300">
+            @if (form.controls.email.errors?.['required']) { Email is required }
+            @else if (form.controls.email.errors?.['email']) { Enter a valid email }
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-slate-200">Password</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          [attr.aria-invalid]="hasError('password') ? 'true' : null"
+          [attr.aria-describedby]="hasError('password') ? 'password-err' : null"
+          class="mt-1 block w-full rounded-md border bg-slate-950/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2"
+          [class]="hasError('password') ? 'border-rose-500/50 focus:border-rose-400 focus:ring-rose-400/30' : 'border-white/10 focus:border-cyan-400/60 focus:ring-cyan-400/40'"
+        />
+        @if (hasError('password')) {
+          <p id="password-err" class="mt-1 text-xs text-rose-300">
+            @if (form.controls.password.errors?.['required']) { Password is required }
+            @else if (form.controls.password.errors?.['minlength']) { Password must be at least 12 characters }
+          </p>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/25 transition hover:bg-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="submitting()"
+      >
+        @if (submitting()) { <app-spinner /> Signing in } @else { Sign in }
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex w-full items-center justify-center rounded-md border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="useAdminDemo()"
+        [disabled]="submitting()"
+      >
+        Log in as admin (demo)
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-slate-400">
+      No account?
+      <a routerLink="/register" class="font-medium text-cyan-300 underline-offset-4 hover:underline">Create one</a>
+    </p>
+  </div>
+</div>

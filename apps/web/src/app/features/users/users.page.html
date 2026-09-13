@@ -1,0 +1,295 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-50">Team hierarchy</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Link team leads to managers and employees to team leads.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-300">
+        {{ totalCount() }} users
+      </span>
+      @if (unassignedCount() > 0) {
+        <span class="rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-300">
+          {{ unassignedCount() }} unassigned
+        </span>
+      } @else if (loaded()) {
+        <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-medium text-emerald-300">
+          Fully assigned
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="relative">
+    <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.45 4.39l3.08 3.08a1 1 0 01-1.42 1.42l-3.08-3.08A7 7 0 012 9z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+    <input
+      type="search"
+      placeholder="Search by name or email"
+      [value]="search()"
+      (input)="onSearchInput($event)"
+      class="block w-full rounded-md border border-white/10 bg-slate-950/40 py-2 pl-9 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+      aria-label="Search users"
+    />
+    @if (search()) {
+      <button
+        type="button"
+        class="absolute inset-y-0 right-2 flex items-center rounded p-1 text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+        (click)="clearSearch()"
+        aria-label="Clear search"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M4.28 3.22a.75.75 0 011.06 0L10 7.88l4.66-4.66a.75.75 0 111.06 1.06L11.06 8.94l4.66 4.66a.75.75 0 11-1.06 1.06L10 10l-4.66 4.66a.75.75 0 01-1.06-1.06L8.94 8.94 4.28 4.28a.75.75 0 010-1.06z"/>
+        </svg>
+      </button>
+    }
+  </div>
+
+  @if (loading() && !loaded()) {
+    <div class="flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] py-16 text-cyan-300">
+      <app-spinner size="lg" />
+    </div>
+  } @else if (loaded() && !hasResults()) {
+    <div class="rounded-xl border border-dashed border-white/15 bg-white/[0.02] py-16 text-center">
+      <p class="text-sm text-slate-400">
+        @if (search()) { No users match "{{ search() }}". } @else { No users yet. }
+      </p>
+      @if (search()) {
+        <button
+          type="button"
+          class="mt-3 rounded-md bg-white/[0.06] px-3 py-1.5 text-sm text-slate-200 hover:bg-white/[0.1]"
+          (click)="clearSearch()"
+        >
+          Clear search
+        </button>
+      }
+    </div>
+  } @else {
+    <!-- Needs attention -->
+    @if (hasNeedsAttention()) {
+      <section class="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] backdrop-blur-md">
+        <header class="flex items-center justify-between border-b border-amber-400/20 px-5 py-3">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400/20 text-amber-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.335-.213 2.98-1.742 2.98H3.482c-1.53 0-2.493-1.645-1.743-2.98L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </span>
+            <h2 class="text-sm font-semibold text-amber-100">Needs attention</h2>
+            <span class="text-xs text-amber-300/80">{{ unassignedTLs().length + unassignedEmps().length }} to assign</span>
+          </div>
+        </header>
+        <ul class="divide-y divide-amber-400/10">
+          @for (tl of unassignedTLs(); track tl.id) {
+            <li class="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="rounded-full bg-violet-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200 ring-1 ring-inset ring-violet-400/25">Team lead</span>
+                <div class="min-w-0">
+                  <div class="truncate text-sm font-medium text-slate-100">{{ tl.username }}</div>
+                  <div class="truncate text-xs text-slate-400">{{ tl.email }}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs uppercase tracking-wide text-slate-400" [for]="'na-mgr-' + tl.id">Manager</label>
+                <div class="relative">
+                  <select
+                    [id]="'na-mgr-' + tl.id"
+                    class="rounded-md border border-white/10 bg-slate-950/50 px-3 py-1.5 pr-8 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="isSaving(tl.id) || managers().length === 0"
+                    [ngModel]="tl.manager ?? ''"
+                    (change)="onManagerChange(tl, $event)"
+                  >
+                    <option value="">Pick a manager</option>
+                    @for (m of managers(); track m.id) {
+                      <option [value]="m.id">{{ m.username }}</option>
+                    }
+                  </select>
+                  @if (isSaving(tl.id)) {
+                    <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cyan-300">
+                      <app-spinner />
+                    </div>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+          @for (emp of unassignedEmps(); track emp.id) {
+            <li class="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300 ring-1 ring-inset ring-white/10">Employee</span>
+                <div class="min-w-0">
+                  <div class="truncate text-sm font-medium text-slate-100">{{ emp.username }}</div>
+                  <div class="truncate text-xs text-slate-400">{{ emp.email }}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs uppercase tracking-wide text-slate-400" [for]="'na-tl-' + emp.id">Team lead</label>
+                <div class="relative">
+                  <select
+                    [id]="'na-tl-' + emp.id"
+                    class="rounded-md border border-white/10 bg-slate-950/50 px-3 py-1.5 pr-8 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="isSaving(emp.id) || teamLeads().length === 0"
+                    [ngModel]="emp.teamLead ?? ''"
+                    (change)="onTeamLeadChange(emp, $event)"
+                  >
+                    <option value="">Pick a team lead</option>
+                    @for (tl of teamLeads(); track tl.id) {
+                      <option [value]="tl.id">{{ tl.username }}</option>
+                    }
+                  </select>
+                  @if (isSaving(emp.id)) {
+                    <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cyan-300">
+                      <app-spinner />
+                    </div>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else if (loaded()) {
+      <section class="flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-5 py-4 text-sm text-emerald-100">
+        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clip-rule="evenodd"/>
+          </svg>
+        </span>
+        Everyone is assigned to a parent.
+      </section>
+    }
+
+    <!-- Hierarchy -->
+    <section aria-label="Team hierarchy tree" class="space-y-3">
+      @if (hierarchy().length === 0 && loaded() && !search()) {
+        <div class="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-8 text-sm text-slate-400">
+          No managers yet. Once a manager registers, their tree will appear here.
+        </div>
+      }
+      @for (node of hierarchy(); track node.manager.id) {
+        <article class="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md">
+          <header class="flex items-center justify-between gap-3 px-5 py-3">
+            <button
+              type="button"
+              class="flex flex-1 items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-md"
+              (click)="toggleCollapse(node.manager.id)"
+              [attr.aria-expanded]="!isCollapsed(node.manager.id)"
+            >
+              <span
+                class="inline-flex h-5 w-5 items-center justify-center text-slate-400 transition"
+                [class.rotate-90]="!isCollapsed(node.manager.id)"
+                aria-hidden="true"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.05 4.55a.75.75 0 011.06 0l4.5 4.5a.75.75 0 010 1.06l-4.5 4.5a.75.75 0 11-1.06-1.06L10.94 10 7.05 6.11a.75.75 0 010-1.06z" clip-rule="evenodd"/>
+                </svg>
+              </span>
+              <span class="rounded-full bg-cyan-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-200 ring-1 ring-inset ring-cyan-400/25">Manager</span>
+              <div class="min-w-0">
+                <div class="truncate text-sm font-medium text-slate-100">{{ node.manager.username }}</div>
+                <div class="truncate text-xs text-slate-400">{{ node.manager.email }}</div>
+              </div>
+            </button>
+            <div class="shrink-0 text-xs text-slate-400">
+              {{ node.teamLeads.length }} team {{ node.teamLeads.length === 1 ? 'lead' : 'leads' }}
+              @if (node.employeeCount > 0) {
+                <span class="opacity-70"> · {{ node.employeeCount }} {{ node.employeeCount === 1 ? 'employee' : 'employees' }}</span>
+              }
+            </div>
+          </header>
+          @if (!isCollapsed(node.manager.id)) {
+            <div class="border-t border-white/[0.06] px-5 py-3">
+              @if (node.teamLeads.length === 0) {
+                <p class="text-xs text-slate-500">No team leads reporting yet.</p>
+              } @else {
+                <ul class="space-y-3">
+                  @for (t of node.teamLeads; track t.teamLead.id) {
+                    <li class="rounded-lg border border-white/[0.06] bg-slate-950/30 p-3">
+                      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-center gap-3 min-w-0">
+                          <span class="rounded-full bg-violet-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200 ring-1 ring-inset ring-violet-400/25">Team lead</span>
+                          <div class="min-w-0">
+                            <div class="truncate text-sm font-medium text-slate-100">{{ t.teamLead.username }}</div>
+                            <div class="truncate text-xs text-slate-400">{{ t.teamLead.email }}</div>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <label class="text-xs uppercase tracking-wide text-slate-400" [for]="'h-mgr-' + t.teamLead.id">Manager</label>
+                          <div class="relative">
+                            <select
+                              [id]="'h-mgr-' + t.teamLead.id"
+                              class="rounded-md border border-white/10 bg-slate-950/50 px-3 py-1.5 pr-8 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 disabled:cursor-not-allowed disabled:opacity-60"
+                              [disabled]="isSaving(t.teamLead.id) || managers().length === 0"
+                              [ngModel]="t.teamLead.manager ?? ''"
+                              (change)="onManagerChange(t.teamLead, $event)"
+                            >
+                              <option value="">Unassigned</option>
+                              @for (m of managers(); track m.id) {
+                                <option [value]="m.id">{{ m.username }}</option>
+                              }
+                            </select>
+                            @if (isSaving(t.teamLead.id)) {
+                              <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cyan-300">
+                                <app-spinner />
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      @if (t.employees.length > 0) {
+                        <ul class="mt-3 space-y-2 border-l border-white/[0.08] pl-4">
+                          @for (emp of t.employees; track emp.id) {
+                            <li class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div class="flex items-center gap-3 min-w-0">
+                                <span class="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-300 ring-1 ring-inset ring-white/10">Employee</span>
+                                <div class="min-w-0">
+                                  <div class="truncate text-sm text-slate-100">{{ emp.username }}</div>
+                                  <div class="truncate text-xs text-slate-400">{{ emp.email }}</div>
+                                </div>
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <label class="text-xs uppercase tracking-wide text-slate-400" [for]="'h-tl-' + emp.id">Team lead</label>
+                                <div class="relative">
+                                  <select
+                                    [id]="'h-tl-' + emp.id"
+                                    class="rounded-md border border-white/10 bg-slate-950/50 px-3 py-1.5 pr-8 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/40 disabled:cursor-not-allowed disabled:opacity-60"
+                                    [disabled]="isSaving(emp.id) || teamLeads().length === 0"
+                                    [ngModel]="emp.teamLead ?? ''"
+                                    (change)="onTeamLeadChange(emp, $event)"
+                                  >
+                                    <option value="">Unassigned</option>
+                                    @for (tl of teamLeads(); track tl.id) {
+                                      <option [value]="tl.id">{{ tl.username }}</option>
+                                    }
+                                  </select>
+                                  @if (isSaving(emp.id)) {
+                                    <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-cyan-300">
+                                      <app-spinner />
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        <p class="mt-3 border-l border-white/[0.08] pl-4 text-xs text-slate-500">No employees under this team lead.</p>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        </article>
+      }
+    </section>
+  }
+</div>
